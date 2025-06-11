@@ -46,7 +46,7 @@ exports.handler = function (request, context) {
           {
             namespace: "Alexa.EndpointHealth",
             name: "connectivity",
-            value: { value: "OK" },
+            value: { value: "OK" },//modificar si se quiere hacer que esta o no conectado
             timeOfSample: new Date().toISOString(),
             uncertaintyInMilliseconds: 0
           }
@@ -221,6 +221,17 @@ async function handlePowerControl(request, context) {
     //swapping the power state
     if (requestMethod === "TurnOn") {
         deviceStates[endpointId].powerState = "ON";
+//llmando a particle
+
+        if(endpointId == "RiegoArriba" || endpointId == "RiegoAbajo" || endpointId == "RiegoAmbas"){
+          try {
+              const result = await callParticle(endpointId);
+              console.log("Respuesta de particle",JSON.parse(result));
+          } catch (err) {
+              console.log("Error al llamar a Particle:", err);
+          }   
+}
+
     } else {
         deviceStates[endpointId].powerState = "OFF";
     }
@@ -231,14 +242,7 @@ async function handlePowerControl(request, context) {
 
     // 📡 Opcional: Aquí puedes enviar la señal a un API/MQTT que controle el hardware real
 
-    if(endpointId == "RiegoArriba" || endpointId == "RiegoAbajo" || endpointId == "RiegoAmbas"){
-        try {
-            const result = await callParticle(endpointId);
-            console.log("Respuesta de particle",JSON.parse(result));
-        } catch (err) {
-            console.log("Error al llamar a Particle:", err);
-        }   
-    }
+
 
 
     var contextResult = {
