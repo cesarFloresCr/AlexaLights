@@ -1,24 +1,12 @@
-// -*- coding: utf-8 -*-
-
-// Copyright 2021 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-//
-// SPDX-License-Identifier: LicenseRef-.amazon.com.-AmznSL-1.0
-// Licensed under the Amazon Software License (the "License")
-// You may not use this file except in compliance with the License.
-// A copy of the License is located at http://aws.amazon.com/asl/
-//
-// This file is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, express or implied. See the License for the specific
-// language governing permissions and limitations under the License.
-
 const https = require('https'); // Asegurar que está importado
 
 
-var deviceStates = {
-    "RiegoArriba": "OFF",
-    "RiegoAbajo": "OFF",
-    "RiegoAmbas": "OFF"
-  };
+const deviceStates = {
+  RiegoArriba: { powerState: "OFF" },
+  RiegoAbajo: { powerState: "OFF" },
+  RiegoAmbas: { powerState: "OFF" }
+};
+
 
 
 exports.handler = function (request, context) {
@@ -101,7 +89,7 @@ function handleDiscovery(request, context) {
         "endpoints": [
             {
                 "endpointId": "RiegoArriba",
-                "manufacturerName": "Smart Device Company",
+                "manufacturerName": "Infected Device Company",
                 "friendlyName": "Plantas Arriba",
                 "description": "Válvula inteligente plantas Arriba",
                 "displayCategories": ["LIGHT"],
@@ -119,7 +107,7 @@ function handleDiscovery(request, context) {
             },
             {
                 "endpointId": "RiegoAbajo",
-                "manufacturerName": "Smart Device Company",
+                "manufacturerName": "Infected Device Company",
                 "friendlyName": "Plantas Abajo",
                 "description": "Válvula inteligente plantas Arriba",
                 "displayCategories": ["LIGHT"],
@@ -137,7 +125,7 @@ function handleDiscovery(request, context) {
             },
             {
                 "endpointId": "RiegoAmbas",
-                "manufacturerName": "Smart Device Company",
+                "manufacturerName": "Infected Device Company",
                 "friendlyName": "Ambas Plantas",
                 "description": "valvula inteligente de las plantas",
                 "displayCategories": ["LIGHT"],
@@ -165,7 +153,6 @@ function handleDiscovery(request, context) {
 
 async function handlePowerControl(request, context) {
     var requestMethod = request.directive.header.name;
-    
     var responseHeader = {...request.directive.header};
     responseHeader.namespace = "Alexa";
     responseHeader.name = "Response";
@@ -180,6 +167,13 @@ async function handlePowerControl(request, context) {
         context.fail("Endpoint desconocido: " + endpointId);
         return;
     }
+    //swapping the power state
+    if (requestMethod === "TurnOn") {
+        deviceStates[endpointId].powerState = "ON";
+    } else {
+        deviceStates[endpointId].powerState = "OFF";
+    }
+
 
     // 📌 Todos los botones envían un pulso sin cambiar estado
     log("DEBUG", `Alexa.PowerController - ${endpointId}: PULSADO`);
@@ -201,7 +195,7 @@ async function handlePowerControl(request, context) {
             {
                 "namespace": "Alexa.PowerController",
                 "name": "powerState",
-                "value": "OFF", // Simula el pulso momentáneo
+                "value": deviceStates[endpointId].powerState, //reports powerstate puede ser off directamente
                 "timeOfSample": new Date().toISOString(),
                 "uncertaintyInMilliseconds": 50
             },
