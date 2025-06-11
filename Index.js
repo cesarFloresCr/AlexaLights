@@ -22,6 +22,56 @@ exports.handler = function (request, context) {
   }
   else if (request.directive.header.namespace === 'Alexa.Authorization' && request.directive.header.name === 'AcceptGrant') {
       handleAuthorization(request, context)
+  }else if (request.directive.header.namespace === 'Alexa' && request.directive.header.name === 'ReportState'){
+     log("DEBUG:", "ReportState Request", JSON.stringify(request));
+     handleReportState(request, context);
+  }
+
+  //function handleReporState(request, context) {
+    // Obtener el estado actual del dispositivo
+  function handleReportState(request, context) {
+    const endpointId = request.directive.endpoint.endpointId;
+    const requestToken = request.directive.endpoint.scope.token;
+    const powerState = deviceStates[endpointId].powerState;
+    const response = {
+      context: {
+        properties: [
+          {
+            namespace: "Alexa.PowerController",
+            name: "powerState",
+            value: powerState,
+            timeOfSample: new Date().toISOString(),
+            uncertaintyInMilliseconds: 500
+          },
+          {
+            namespace: "Alexa.EndpointHealth",
+            name: "connectivity",
+            value: { value: "OK" },
+            timeOfSample: new Date().toISOString(),
+            uncertaintyInMilliseconds: 0
+          }
+        ]
+      },
+      event: {
+        header: {
+          namespace: "Alexa",
+          name: "StateReport",
+          messageId: request.directive.header.messageId + "-R",
+          correlationToken: request.directive.header.correlationToken,
+          payloadVersion: "3"
+        },
+        endpoint: {
+          scope: {
+            type: "BearerToken",
+            token: requestToken
+          },
+          endpointId: endpointId
+        },
+        payload:{}
+      }
+    };
+    log("DEBUG", "Alexa.ReportState ", JSON.stringify(response));
+    context.succeed(response);
   }
 
   function handleAuthorization(request, context) {
