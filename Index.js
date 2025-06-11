@@ -156,9 +156,10 @@ async function handlePowerControl(request, context) {
     var responseHeader = {...request.directive.header};
     responseHeader.namespace = "Alexa";
     responseHeader.name = "Response";
-
-
     responseHeader.messageId = responseHeader.messageId + "-R";
+    responseHeader.payloadVersion = "3";
+    responseHeader.correlationToken = request.directive.header.correlationToken;
+
     
     var requestToken = request.directive.endpoint.scope.token;
     var endpointId = request.directive.endpoint.endpointId;  // 📌 Identificar cuál botón se pulsó
